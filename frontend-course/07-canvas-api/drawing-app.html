@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas绘图板 - 第7课实践项目</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .toolbar {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 20px;
+        }
+        
+        .tool-group:last-child {
+            margin-right: 0;
+        }
+        
+        .tool-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            min-width: 60px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #6c757d;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+        
+        .btn.active {
+            background: #dc3545;
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .btn.primary {
+            background: #007bff;
+        }
+        
+        .btn.primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn.success {
+            background: #28a745;
+        }
+        
+        .btn.success:hover {
+            background: #1e7e34;
+        }
+        
+        input[type="range"] {
+            width: 120px;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .value-display {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .canvas-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            background: #f8f9fa;
+            padding: 30px;
+        }
+        
+        canvas {
+            border: 3px solid #dee2e6;
+            border-radius: 10px;
+            background: white;
+            cursor: crosshair;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .canvas-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 15px 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .preset-colors {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .preset-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .preset-color:hover {
+            transform: scale(1.1);
+            border-color: #007bff;
+        }
+        
+        .brush-preview {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .brush-dot {
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tool-group {
+                justify-content: space-between;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .canvas-container {
+                padding: 15px;
+            }
+            
+            canvas {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>🎨 Canvas绘图板</h1>
+            <p>探索Canvas API的强大功能 - 创造属于你的数字艺术</p>
+        </div>
+        
+        <div class="toolbar">
+            <div class="tool-group">
+                <label>🔧 工具:</label>
+                <button class="btn active" data-tool="brush">🖌️ 画笔</button>
+                <button class="btn" data-tool="line">📏 直线</button>
+                <button class="btn" data-tool="rect">⬜ 矩形</button>
+                <button class="btn" data-tool="circle">⭕ 圆形</button>
+                <button class="btn" data-tool="eraser">🧽 橡皮擦</button>
+            </div>
+            
+            <div class="tool-group">
+                <label>📏 粗细:</label>
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+                <span class="value-display" id="sizeDisplay">5px</span>
+                <div class="brush-preview">
+                    <div class="brush-dot" id="brushPreview"></div>
+                </div>
+            </div>
+            
+            <div class="tool-group">
+                <label>🎨 颜色:</label>
+                <input type="color" id="colorPicker" value="#000000">
+                <div class="preset-colors">
+                    <div class="preset-color" style="background: #000000" data-color="#000000"></div>
+                    <div class="preset-color" style="background: #ff0000" data-color="#ff0000"></div>
+                    <div class="preset-color" style="background: #00ff00" data-color="#00ff00"></div>
+                    <div class="preset-color" style="background: #0000ff" data-color="#0000ff"></div>
+                    <div class="preset-color" style="background: #ffff00" data-color="#ffff00"></div>
+                    <div class="preset-color" style="background: #ff00ff" data-color="#ff00ff"></div>
+                    <div class="preset-color" style="background: #00ffff" data-color="#00ffff"></div>
+                </div>
+            </div>
+            
+            <div class="tool-group">
+                <label>🔍 透明度:</label>
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1">
+                <span class="value-display" id="opacityDisplay">100%</span>
+            </div>
+            
+            <div class="tool-group">
+                <button class="btn primary" id="clearCanvas">🗑️ 清空</button>
+                <button class="btn success" id="saveCanvas">💾 保存</button>
+                <button class="btn" id="loadImage">📁 加载图片</button>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="drawingCanvas" width="800" height="600"></canvas>
+            <div class="canvas-info" id="canvasInfo">
+                坐标: (0, 0) | 工具: 画笔 | 大小: 5px
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>💡 提示: 使用不同工具和颜色创作你的艺术作品，支持触摸屏设备</p>
+        </div>
+    </div>
+
+    <script>
+        class AdvancedDrawingApp {
+            constructor() {
+                this.canvas = document.getElementById('drawingCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.isDrawing = false;
+                this.currentTool = 'brush';
+                this.startX = 0;
+                this.startY = 0;
+                this.currentPath = [];
+                this.history = [];
+                this.historyStep = -1;
+                
+                // 绘图状态
+                this.brushSize = 5;
+                this.currentColor = '#000000';
+                this.currentOpacity = 1;
+                
+                // 设置Canvas高DPI支持
+                this.setupHighDPI();
+                
+                // 绑定事件
+                this.bindEvents();
+                
+                // 初始化界面
+                this.initializeUI();
+                
+                // 设置默认样式
+                this.setCanvasDefaults();
+                
+                // 保存初始状态
+                this.saveState();
+                
+                console.log('🎨 Canvas绘图板初始化完成');
+            }
+            
+            setupHighDPI() {
+                const rect = this.canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                
+                // 设置实际大小
+                this.canvas.width = 800 * dpr;
+                this.canvas.height = 600 * dpr;
+                
+                // 设置显示大小
+                this.canvas.style.width = '800px';
+                this.canvas.style.height = '600px';
+                
+                // 缩放上下文以匹配设备像素比
+                this.ctx.scale(dpr, dpr);
+                
+                console.log(`📱 高DPI设置完成，设备像素比: ${dpr}`);
+            }
+            
+            setCanvasDefaults() {
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                this.ctx.strokeStyle = this.currentColor;
+                this.ctx.fillStyle = this.currentColor;
+                this.ctx.lineWidth = this.brushSize;
+                this.ctx.globalAlpha = this.currentOpacity;
+            }
+            
+            bindEvents() {
+                // 鼠标事件
+                this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
+                this.canvas.addEventListener('mousemove', this.draw.bind(this));
+                this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
+                this.canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
+                
+                // 触摸事件支持
+                this.canvas.addEventListener('touchstart', this.handleTouch.bind(this));
+                this.canvas.addEventListener('touchmove', this.handleTouch.bind(this));
+                this.canvas.addEventListener('touchend', this.stopDrawing.bind(this));
+                
+                // 工具选择
+                document.querySelectorAll('[data-tool]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.selectTool(e.target.dataset.tool);
+                    });
+                });
+                
+                // 控件事件
+                document.getElementById('brushSize').addEventListener('input', this.updateBrushSize.bind(this));
+                document.getElementById('colorPicker').addEventListener('change', this.updateColor.bind(this));
+                document.getElementById('opacity').addEventListener('input', this.updateOpacity.bind(this));
+                
+                // 预设颜色
+                document.querySelectorAll('.preset-color').forEach(color => {
+                    color.addEventListener('click', (e) => {
+                        const colorValue = e.target.dataset.color;
+                        document.getElementById('colorPicker').value = colorValue;
+                        this.updateColor({ target: { value: colorValue } });
+                    });
+                });
+                
+                // 功能按钮
+                document.getElementById('clearCanvas').addEventListener('click', this.clearCanvas.bind(this));
+                document.getElementById('saveCanvas').addEventListener('click', this.saveCanvas.bind(this));
+                document.getElementById('loadImage').addEventListener('click', () => {
+                    document.getElementById('imageInput').click();
+                });
+                document.getElementById('imageInput').addEventListener('change', this.loadImage.bind(this));
+                
+                // 坐标和信息显示
+                this.canvas.addEventListener('mousemove', this.updateInfo.bind(this));
+                
+                // 键盘快捷键
+                document.addEventListener('keydown', this.handleKeyboard.bind(this));
+            }
+            
+            initializeUI() {
+                this.updateBrushSize();
+                this.updateOpacity();
+                this.updateBrushPreview();
+                this.updateInfo({ clientX: 0, clientY: 0 });
+            }
+            
+            handleTouch(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent(
+                    e.type === 'touchstart' ? 'mousedown' : 'mousemove',
+                    {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    }
+                );
+                this.canvas.dispatchEvent(mouseEvent);
+            }
+            
+            handleKeyboard(e) {
+                // 快捷键
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case 'z':
+                            e.preventDefault();
+                            this.undo();
+                            break;
+                        case 'y':
+                            e.preventDefault();
+                            this.redo();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            this.saveCanvas();
+                            break;
+                    }
+                }
+                
+                // 工具快捷键
+                switch (e.key) {
+                    case 'b':
+                        this.selectTool('brush');
+                        break;
+                    case 'l':
+                        this.selectTool('line');
+                        break;
+                    case 'r':
+                        this.selectTool('rect');
+                        break;
+                    case 'c':
+                        this.selectTool('circle');
+                        break;
+                    case 'e':
+                        this.selectTool('eraser');
+                        break;
+                }
+            }
+            
+            getMousePos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
+            
+            startDrawing(e) {
+                this.isDrawing = true;
+                const pos = this.getMousePos(e);
+                this.startX = pos.x;
+                this.startY = pos.y;
+                
+                if (this.currentTool === 'brush' || this.currentTool === 'eraser') {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(pos.x, pos.y);
+                    this.currentPath = [pos];
+                }
+                
+                // 保存当前状态用于撤销功能
+                this.saveCanvasState();
+            }
+            
+            draw(e) {
+                if (!this.isDrawing) return;
+                
+                const pos = this.getMousePos(e);
+                
+                switch (this.currentTool) {
+                    case 'brush':
+                        this.drawBrush(pos);
+                        break;
+                    case 'eraser':
+                        this.erase(pos);
+                        break;
+                    case 'line':
+                        this.drawLine(pos);
+                        break;
+                    case 'rect':
+                        this.drawRect(pos);
+                        break;
+                    case 'circle':
+                        this.drawCircle(pos);
+                        break;
+                }
+            }
+            
+            stopDrawing() {
+                if (!this.isDrawing) return;
+                
+                this.isDrawing = false;
+                this.currentPath = [];
+                
+                // 保存到历史记录
+                this.saveState();
+            }
+            
+            drawBrush(pos) {
+                this.ctx.globalCompositeOperation = 'source-over';
+                this.ctx.lineTo(pos.x, pos.y);
+                this.ctx.stroke();
+                this.ctx.beginPath();
+                this.ctx.moveTo(pos.x, pos.y);
+                this.currentPath.push(pos);
+            }
+            
+            erase(pos) {
+                this.ctx.globalCompositeOperation = 'destination-out';
+                this.ctx.beginPath();
+                this.ctx.arc(pos.x, pos.y, this.brushSize / 2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            drawLine(pos) {
+                this.restoreCanvasState();
+                this.ctx.globalCompositeOperation = 'source-over';
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.startX, this.startY);
+                this.ctx.lineTo(pos.x, pos.y);
+                this.ctx.stroke();
+            }
+            
+            drawRect(pos) {
+                this.restoreCanvasState();
+                this.ctx.globalCompositeOperation = 'source-over';
+                const width = pos.x - this.startX;
+                const height = pos.y - this.startY;
+                this.ctx.beginPath();
+                this.ctx.rect(this.startX, this.startY, width, height);
+                this.ctx.stroke();
+            }
+            
+            drawCircle(pos) {
+                this.restoreCanvasState();
+                this.ctx.globalCompositeOperation = 'source-over';
+                const radius = Math.sqrt(
+                    Math.pow(pos.x - this.startX, 2) + 
+                    Math.pow(pos.y - this.startY, 2)
+                );
+                this.ctx.beginPath();
+                this.ctx.arc(this.startX, this.startY, radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
+            
+            selectTool(tool) {
+                this.currentTool = tool;
+                
+                // 更新UI
+                document.querySelectorAll('[data-tool]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+                
+                // 更新光标
+                const cursors = {
+                    brush: 'crosshair',
+                    line: 'crosshair',
+                    rect: 'crosshair',
+                    circle: 'crosshair',
+                    eraser: 'grab'
+                };
+                this.canvas.style.cursor = cursors[tool] || 'crosshair';
+                
+                // 更新信息显示
+                this.updateInfo();
+                
+                console.log(`🔧 切换到工具: ${tool}`);
+            }
+            
+            updateBrushSize() {
+                this.brushSize = parseInt(document.getElementById('brushSize').value);
+                this.ctx.lineWidth = this.brushSize;
+                document.getElementById('sizeDisplay').textContent = this.brushSize + 'px';
+                this.updateBrushPreview();
+            }
+            
+            updateColor(e) {
+                this.currentColor = e.target.value;
+                this.ctx.strokeStyle = this.currentColor;
+                this.ctx.fillStyle = this.currentColor;
+                this.updateBrushPreview();
+                console.log(`🎨 颜色更新为: ${this.currentColor}`);
+            }
+            
+            updateOpacity() {
+                this.currentOpacity = parseFloat(document.getElementById('opacity').value);
+                this.ctx.globalAlpha = this.currentOpacity;
+                document.getElementById('opacityDisplay').textContent = 
+                    Math.round(this.currentOpacity * 100) + '%';
+            }
+            
+            updateBrushPreview() {
+                const preview = document.getElementById('brushPreview');
+                const size = Math.min(this.brushSize, 40);
+                preview.style.width = size + 'px';
+                preview.style.height = size + 'px';
+                preview.style.backgroundColor = this.currentColor;
+            }
+            
+            updateInfo(e) {
+                const info = document.getElementById('canvasInfo');
+                let pos = { x: 0, y: 0 };
+                
+                if (e && e.clientX !== undefined) {
+                    pos = this.getMousePos(e);
+                }
+                
+                const toolNames = {
+                    brush: '画笔',
+                    line: '直线',
+                    rect: '矩形',
+                    circle: '圆形',
+                    eraser: '橡皮擦'
+                };
+                
+                info.textContent = 
+                    `坐标: (${Math.round(pos.x)}, ${Math.round(pos.y)}) | ` +
+                    `工具: ${toolNames[this.currentTool]} | ` +
+                    `大小: ${this.brushSize}px`;
+            }
+            
+            saveCanvasState() {
+                this.savedImageData = this.ctx.getImageData(0, 0, 800, 600);
+            }
+            
+            restoreCanvasState() {
+                if (this.savedImageData) {
+                    this.ctx.putImageData(this.savedImageData, 0, 0);
+                }
+            }
+            
+            saveState() {
+                this.historyStep++;
+                if (this.historyStep < this.history.length) {
+                    this.history.length = this.historyStep;
+                }
+                this.history.push(this.canvas.toDataURL());
+            }
+            
+            undo() {
+                if (this.historyStep > 0) {
+                    this.historyStep--;
+                    this.restoreFromHistory();
+                    console.log('↶ 撤销操作');
+                }
+            }
+            
+            redo() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.historyStep++;
+                    this.restoreFromHistory();
+                    console.log('↷ 重做操作');
+                }
+            }
+            
+            restoreFromHistory() {
+                const img = new Image();
+                img.onload = () => {
+                    this.ctx.clearRect(0, 0, 800, 600);
+                    this.ctx.drawImage(img, 0, 0);
+                };
+                img.src = this.history[this.historyStep];
+            }
+            
+            clearCanvas() {
+                if (confirm('确定要清空画布吗？此操作不可撤销。')) {
+                    this.ctx.clearRect(0, 0, 800, 600);
+                    this.saveState();
+                    console.log('🗑️ 画布已清空');
+                }
+            }
+            
+            saveCanvas() {
+                try {
+                    const link = document.createElement('a');
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.download = `canvas-drawing-${timestamp}.png`;
+                    link.href = this.canvas.toDataURL('image/png');
+                    link.click();
+                    console.log('💾 图像保存成功');
+                } catch (error) {
+                    console.error('保存失败:', error);
+                    alert('保存失败，请重试');
+                }
+            }
+            
+            loadImage(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // 询问是否清空当前画布
+                        if (confirm('加载图片将清空当前画布，是否继续？')) {
+                            this.ctx.clearRect(0, 0, 800, 600);
+                            
+                            // 计算图片显示尺寸（保持比例）
+                            const scale = Math.min(800 / img.width, 600 / img.height);
+                            const width = img.width * scale;
+                            const height = img.height * scale;
+                            const x = (800 - width) / 2;
+                            const y = (600 - height) / 2;
+                            
+                            this.ctx.drawImage(img, x, y, width, height);
+                            this.saveState();
+                            console.log('📁 图片加载成功');
+                        }
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                
+                // 清空文件输入
+                e.target.value = '';
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new AdvancedDrawingApp();
+            
+            // 欢迎消息
+            setTimeout(() => {
+                console.log(`
+🎨 Canvas绘图板使用指南：
+├── 鼠标操作: 点击拖拽进行绘制
+├── 触摸支持: 支持触摸屏设备
+├── 快捷键:
+│   ├── Ctrl+Z: 撤销
+│   ├── Ctrl+Y: 重做  
+│   ├── Ctrl+S: 保存
+│   ├── B: 画笔工具
+│   ├── L: 直线工具
+│   ├── R: 矩形工具
+│   ├── C: 圆形工具
+│   └── E: 橡皮擦工具
+└── 功能: 支持多种工具、颜色、透明度调节等
+
+开始你的数字艺术创作吧! 🚀
+                `);
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

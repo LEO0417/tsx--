@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图形数学可视化 - 第9课实践项目</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #0c1445 0%, #1e3c72 50%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #e17055);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 4s ease-in-out infinite;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 50% 100%; }
+            75% { background-position: 50% 0%; }
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: rotate(45deg);
+            transition: transform 0.6s ease;
+        }
+
+        .demo-card:hover::before {
+            transform: rotate(45deg) translate(50%, 50%);
+        }
+
+        .demo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+            text-align: center;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .demo-area {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 350px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #26a085, #3d8b7c);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slider-label {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 80px;
+            color: #b8e6d1;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.5);
+        }
+
+        .value-display {
+            font-size: 14px;
+            color: #4ecdc4;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+            background: rgba(78, 205, 196, 0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        canvas {
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-panel h4 {
+            color: #4ecdc4;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .info-panel p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #f9ca24;
+            border-left: 4px solid #4ecdc4;
+            margin: 10px 0;
+        }
+
+        /* 特殊效果 */
+        .glow {
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 32px;
+            }
+            
+            .demo-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📐 图形数学可视化</h1>
+            <p>探索向量、矩阵、三角函数、贝塞尔曲线等数学概念在图形编程中的应用</p>
+        </div>
+
+        <div class="demo-grid">
+            <!-- 向量演示 -->
+            <div class="demo-card">
+                <h3 class="demo-title">📍 向量操作</h3>
+                <div class="demo-area">
+                    <canvas id="vectorCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">向量A角度:</span>
+                    <input type="range" id="vectorAAngle" min="0" max="360" value="45">
+                    <span class="value-display" id="vectorAAngleValue">45°</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">向量B角度:</span>
+                    <input type="range" id="vectorBAngle" min="0" max="360" value="135">
+                    <span class="value-display" id="vectorBAngleValue">135°</span>
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="showVectorOperation('add')">向量相加</button>
+                    <button class="btn" onclick="showVectorOperation('subtract')">向量相减</button>
+                    <button class="btn" onclick="showVectorOperation('dot')">点积</button>
+                    <button class="btn" onclick="showVectorOperation('cross')">叉积</button>
+                </div>
+                <div class="info-panel">
+                    <h4>当前操作：<span id="vectorOperation">向量相加</span></h4>
+                    <p id="vectorResult">结果将在这里显示</p>
+                    <div class="formula" id="vectorFormula">a + b = (ax + bx, ay + by)</div>
+                </div>
+            </div>
+
+            <!-- 三角函数演示 -->
+            <div class="demo-card">
+                <h3 class="demo-title">📊 三角函数波形</h3>
+                <div class="demo-area">
+                    <canvas id="trigCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">频率:</span>
+                    <input type="range" id="frequency" min="0.1" max="5" step="0.1" value="1">
+                    <span class="value-display" id="frequencyValue">1.0</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">振幅:</span>
+                    <input type="range" id="amplitude" min="10" max="100" value="50">
+                    <span class="value-display" id="amplitudeValue">50</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">相位:</span>
+                    <input type="range" id="phase" min="0" max="360" value="0">
+                    <span class="value-display" id="phaseValue">0°</span>
+                </div>
+                <div class="controls">
+                    <button class="btn active" onclick="selectTrigFunction('sin')">正弦</button>
+                    <button class="btn" onclick="selectTrigFunction('cos')">余弦</button>
+                    <button class="btn" onclick="selectTrigFunction('tan')">正切</button>
+                    <button class="btn" onclick="selectTrigFunction('combined')">组合</button>
+                </div>
+                <div class="info-panel">
+                    <h4>三角函数性质</h4>
+                    <p>调整参数观察波形变化：频率影响周期，振幅影响高度，相位影响起始位置</p>
+                    <div class="formula" id="trigFormula">y = A × sin(f × x + φ)</div>
+                </div>
+            </div>
+
+            <!-- 矩阵变换演示 -->
+            <div class="demo-card">
+                <h3 class="demo-title">🔄 矩阵变换</h3>
+                <div class="demo-area">
+                    <canvas id="matrixCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">旋转角度:</span>
+                    <input type="range" id="rotation" min="0" max="360" value="0">
+                    <span class="value-display" id="rotationValue">0°</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">缩放X:</span>
+                    <input type="range" id="scaleX" min="0.1" max="3" step="0.1" value="1">
+                    <span class="value-display" id="scaleXValue">1.0</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">缩放Y:</span>
+                    <input type="range" id="scaleY" min="0.1" max="3" step="0.1" value="1">
+                    <span class="value-display" id="scaleYValue">1.0</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">倾斜X:</span>
+                    <input type="range" id="skewX" min="-1" max="1" step="0.1" value="0">
+                    <span class="value-display" id="skewXValue">0.0</span>
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="resetMatrix()">重置</button>
+                    <button class="btn" onclick="animateMatrix()">动画演示</button>
+                    <button class="btn" onclick="showMatrixInfo()">矩阵信息</button>
+                </div>
+                <div class="info-panel">
+                    <h4>变换矩阵</h4>
+                    <p>观察不同变换参数对图形的影响</p>
+                    <div class="formula" id="matrixFormula">
+                        [x'] = [a c tx] [x]<br>
+                        [y'] = [b d ty] [y]<br>
+                        [1 ] = [0 0 1 ] [1]
+                    </div>
+                </div>
+            </div>
+
+            <!-- 贝塞尔曲线演示 -->
+            <div class="demo-card">
+                <h3 class="demo-title">🎨 贝塞尔曲线</h3>
+                <div class="demo-area">
+                    <canvas id="bezierCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">控制点1 X:</span>
+                    <input type="range" id="cp1x" min="0" max="400" value="100">
+                    <span class="value-display" id="cp1xValue">100</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">控制点1 Y:</span>
+                    <input type="range" id="cp1y" min="0" max="300" value="50">
+                    <span class="value-display" id="cp1yValue">50</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">控制点2 X:</span>
+                    <input type="range" id="cp2x" min="0" max="400" value="300">
+                    <span class="value-display" id="cp2xValue">300</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">控制点2 Y:</span>
+                    <input type="range" id="cp2y" min="0" max="300" value="250">
+                    <span class="value-display" id="cp2yValue">250</span>
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="setBezierType('quadratic')">二次曲线</button>
+                    <button class="btn active" onclick="setBezierType('cubic')">三次曲线</button>
+                    <button class="btn" onclick="animateBezier()">动画演示</button>
+                    <button class="btn" onclick="showBezierConstruction()">构造过程</button>
+                </div>
+                <div class="info-panel">
+                    <h4>贝塞尔曲线</h4>
+                    <p>调整控制点观察曲线形状变化，了解贝塞尔曲线的构造原理</p>
+                    <div class="formula" id="bezierFormula">B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃</div>
+                </div>
+            </div>
+
+            <!-- 极坐标演示 -->
+            <div class="demo-card">
+                <h3 class="demo-title">🌀 极坐标图形</h3>
+                <div class="demo-area">
+                    <canvas id="polarCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">参数A:</span>
+                    <input type="range" id="polarA" min="1" max="10" value="3">
+                    <span class="value-display" id="polarAValue">3</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">参数B:</span>
+                    <input type="range" id="polarB" min="1" max="10" value="2">
+                    <span class="value-display" id="polarBValue">2</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">缩放:</span>
+                    <input type="range" id="polarScale" min="0.1" max="3" step="0.1" value="1">
+                    <span class="value-display" id="polarScaleValue">1.0</span>
+                </div>
+                <div class="controls">
+                    <button class="btn active" onclick="setPolarType('rose')">玫瑰线</button>
+                    <button class="btn" onclick="setPolarType('spiral')">螺旋线</button>
+                    <button class="btn" onclick="setPolarType('cardioid')">心形线</button>
+                    <button class="btn" onclick="setPolarType('lemniscate')">双纽线</button>
+                </div>
+                <div class="info-panel">
+                    <h4>极坐标方程</h4>
+                    <p>探索各种极坐标图形的数学美</p>
+                    <div class="formula" id="polarFormula">r = a × sin(b × θ)</div>
+                </div>
+            </div>
+
+            <!-- 噪声函数演示 -->
+            <div class="demo-card">
+                <h3 class="demo-title">🌊 噪声函数</h3>
+                <div class="demo-area">
+                    <canvas id="noiseCanvas" width="400" height="300"></canvas>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">频率:</span>
+                    <input type="range" id="noiseFreq" min="0.01" max="0.1" step="0.01" value="0.05">
+                    <span class="value-display" id="noiseFreqValue">0.05</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">振幅:</span>
+                    <input type="range" id="noiseAmp" min="10" max="100" value="50">
+                    <span class="value-display" id="noiseAmpValue">50</span>
+                </div>
+                <div class="slider-container">
+                    <span class="slider-label">八度:</span>
+                    <input type="range" id="noiseOctaves" min="1" max="8" value="4">
+                    <span class="value-display" id="noiseOctavesValue">4</span>
+                </div>
+                <div class="controls">
+                    <button class="btn active" onclick="setNoiseType('perlin')">Perlin噪声</button>
+                    <button class="btn" onclick="setNoiseType('simplex')">Simplex噪声</button>
+                    <button class="btn" onclick="setNoiseType('fractal')">分形噪声</button>
+                    <button class="btn" onclick="animateNoise()">动画</button>
+                </div>
+                <div class="info-panel">
+                    <h4>噪声函数应用</h4>
+                    <p>噪声函数在地形生成、纹理创建、动画效果中的重要作用</p>
+                    <div class="formula" id="noiseFormula">noise(x, y, t) = Σ(amplitude × noise(frequency × x, frequency × y, t))</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数学可视化控制器
+        class MathVisualization {
+            constructor() {
+                this.setupCanvases();
+                this.setupEventListeners();
+                this.setupAnimations();
+                this.initializeVisualizations();
+            }
+
+            setupCanvases() {
+                this.canvases = {
+                    vector: { canvas: document.getElementById('vectorCanvas'), ctx: null },
+                    trig: { canvas: document.getElementById('trigCanvas'), ctx: null },
+                    matrix: { canvas: document.getElementById('matrixCanvas'), ctx: null },
+                    bezier: { canvas: document.getElementById('bezierCanvas'), ctx: null },
+                    polar: { canvas: document.getElementById('polarCanvas'), ctx: null },
+                    noise: { canvas: document.getElementById('noiseCanvas'), ctx: null }
+                };
+
+                Object.values(this.canvases).forEach(canvasObj => {
+                    canvasObj.ctx = canvasObj.canvas.getContext('2d');
+                    canvasObj.ctx.imageSmoothingEnabled = true;
+                });
+
+                // 设置高DPI支持
+                Object.values(this.canvases).forEach(canvasObj => {
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvasObj.canvas.getBoundingClientRect();
+                    canvasObj.canvas.width = rect.width * dpr;
+                    canvasObj.canvas.height = rect.height * dpr;
+                    canvasObj.ctx.scale(dpr, dpr);
+                    canvasObj.canvas.style.width = rect.width + 'px';
+                    canvasObj.canvas.style.height = rect.height + 'px';
+                });
+            }
+
+            setupEventListeners() {
+                // 滑块事件监听
+                const sliders = [
+                    'vectorAAngle', 'vectorBAngle', 'frequency', 'amplitude', 'phase',
+                    'rotation', 'scaleX', 'scaleY', 'skewX', 'cp1x', 'cp1y', 'cp2x', 'cp2y',
+                    'polarA', 'polarB', 'polarScale', 'noiseFreq', 'noiseAmp', 'noiseOctaves'
+                ];
+
+                sliders.forEach(sliderId => {
+                    const slider = document.getElementById(sliderId);
+                    const valueDisplay = document.getElementById(sliderId + 'Value');
+                    
+                    if (slider && valueDisplay) {
+                        slider.addEventListener('input', (e) => {
+                            let value = parseFloat(e.target.value);
+                            
+                            // 格式化显示值
+                            if (sliderId.includes('Angle') || sliderId === 'phase' || sliderId === 'rotation') {
+                                valueDisplay.textContent = value + '°';
+                            } else if (sliderId.includes('freq') || sliderId.includes('Scale') || sliderId.includes('scale')) {
+                                valueDisplay.textContent = value.toFixed(2);
+                            } else {
+                                valueDisplay.textContent = value.toString();
+                            }
+                            
+                            this.updateVisualization(sliderId);
+                        });
+                    }
+                });
+            }
+
+            setupAnimations() {
+                this.animationStates = {
+                    trigTime: 0,
+                    matrixTime: 0,
+                    bezierTime: 0,
+                    noiseTime: 0,
+                    running: {
+                        matrix: false,
+                        bezier: false,
+                        noise: false
+                    }
+                };
+
+                this.startAnimationLoop();
+            }
+
+            startAnimationLoop() {
+                const animate = () => {
+                    this.animationStates.trigTime += 0.02;
+                    
+                    if (this.animationStates.running.matrix) {
+                        this.animationStates.matrixTime += 0.02;
+                        this.drawMatrixTransformation();
+                    }
+                    
+                    if (this.animationStates.running.bezier) {
+                        this.animationStates.bezierTime += 0.01;
+                        if (this.animationStates.bezierTime > 1) {
+                            this.animationStates.bezierTime = 0;
+                        }
+                        this.drawBezierCurve();
+                    }
+                    
+                    if (this.animationStates.running.noise) {
+                        this.animationStates.noiseTime += 0.02;
+                        this.drawNoise();
+                    }
+                    
+                    this.drawTrigonometry();
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            }
+
+            initializeVisualizations() {
+                this.currentStates = {
+                    vectorOperation: 'add',
+                    trigFunction: 'sin',
+                    bezierType: 'cubic',
+                    polarType: 'rose',
+                    noiseType: 'perlin'
+                };
+
+                this.drawVectors();
+                this.drawTrigonometry();
+                this.drawMatrixTransformation();
+                this.drawBezierCurve();
+                this.drawPolarGraphs();
+                this.drawNoise();
+            }
+
+            updateVisualization(sliderId) {
+                if (sliderId.includes('vector')) {
+                    this.drawVectors();
+                } else if (['frequency', 'amplitude', 'phase'].includes(sliderId)) {
+                    // 三角函数会在动画循环中自动更新
+                } else if (['rotation', 'scaleX', 'scaleY', 'skewX'].includes(sliderId)) {
+                    this.drawMatrixTransformation();
+                } else if (sliderId.includes('cp')) {
+                    this.drawBezierCurve();
+                } else if (sliderId.includes('polar')) {
+                    this.drawPolarGraphs();
+                } else if (sliderId.includes('noise')) {
+                    this.drawNoise();
+                }
+            }
+
+            // 向量可视化
+            drawVectors() {
+                const ctx = this.canvases.vector.ctx;
+                ctx.clearRect(0, 0, 400, 300);
+                
+                const centerX = 200;
+                const centerY = 150;
+                const scale = 80;
+                
+                // 获取角度
+                const angleA = parseFloat(document.getElementById('vectorAAngle').value) * Math.PI / 180;
+                const angleB = parseFloat(document.getElementById('vectorBAngle').value) * Math.PI / 180;
+                
+                // 计算向量
+                const vectorA = { x: Math.cos(angleA), y: Math.sin(angleA) };
+                const vectorB = { x: Math.cos(angleB), y: Math.sin(angleB) };
+                
+                // 绘制坐标轴
+                this.drawAxes(ctx, centerX, centerY, 180);
+                
+                // 绘制向量A (红色)
+                this.drawVector(ctx, centerX, centerY, vectorA.x * scale, -vectorA.y * scale, '#ff6b6b', 'A');
+                
+                // 绘制向量B (蓝色)
+                this.drawVector(ctx, centerX, centerY, vectorB.x * scale, -vectorB.y * scale, '#4ecdc4', 'B');
+                
+                // 根据当前操作绘制结果
+                this.drawVectorResult(ctx, centerX, centerY, vectorA, vectorB, scale);
+            }
+
+            drawVector(ctx, startX, startY, dx, dy, color, label) {
+                const endX = startX + dx;
+                const endY = startY + dy;
+                
+                // 绘制向量线
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+                
+                // 绘制箭头
+                const angle = Math.atan2(dy, dx);
+                const arrowLength = 15;
+                const arrowAngle = Math.PI / 6;
+                
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - arrowLength * Math.cos(angle - arrowAngle),
+                    endY - arrowLength * Math.sin(angle - arrowAngle)
+                );
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - arrowLength * Math.cos(angle + arrowAngle),
+                    endY - arrowLength * Math.sin(angle + arrowAngle)
+                );
+                ctx.stroke();
+                
+                // 绘制标签
+                ctx.fillStyle = color;
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(label, endX + 10, endY - 10);
+            }
+
+            drawVectorResult(ctx, centerX, centerY, vectorA, vectorB, scale) {
+                const operation = this.currentStates.vectorOperation;
+                let result = { x: 0, y: 0 };
+                let resultText = '';
+                let formula = '';
+                
+                switch (operation) {
+                    case 'add':
+                        result = { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
+                        this.drawVector(ctx, centerX, centerY, result.x * scale, -result.y * scale, '#f9ca24', 'A+B');
+                        resultText = `A + B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`;
+                        formula = 'a + b = (ax + bx, ay + by)';
+                        break;
+                    case 'subtract':
+                        result = { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
+                        this.drawVector(ctx, centerX, centerY, result.x * scale, -result.y * scale, '#e17055', 'A-B');
+                        resultText = `A - B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`;
+                        formula = 'a - b = (ax - bx, ay - by)';
+                        break;
+                    case 'dot':
+                        const dotProduct = vectorA.x * vectorB.x + vectorA.y * vectorB.y;
+                        resultText = `A · B = ${dotProduct.toFixed(3)}`;
+                        formula = 'a · b = ax × bx + ay × by';
+                        
+                        // 绘制角度
+                        const angle = Math.acos(dotProduct);
+                        ctx.strokeStyle = '#f9ca24';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, 30, -Math.atan2(vectorA.y, vectorA.x), -Math.atan2(vectorB.y, vectorB.x));
+                        ctx.stroke();
+                        break;
+                    case 'cross':
+                        const crossProduct = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
+                        resultText = `A × B = ${crossProduct.toFixed(3)} (标量)`;
+                        formula = 'a × b = ax × by - ay × bx';
+                        break;
+                }
+                
+                document.getElementById('vectorResult').textContent = resultText;
+                document.getElementById('vectorFormula').textContent = formula;
+            }
+
+            drawAxes(ctx, centerX, centerY, length) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                // X轴
+                ctx.moveTo(centerX - length, centerY);
+                ctx.lineTo(centerX + length, centerY);
+                // Y轴
+                ctx.moveTo(centerX, centerY - length);
+                ctx.lineTo(centerX, centerY + length);
+                ctx.stroke();
+                
+                // 网格
+                for (let i = -length; i <= length; i += 40) {
+                    if (i !== 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(centerX + i, centerY - 5);
+                        ctx.lineTo(centerX + i, centerY + 5);
+                        ctx.moveTo(centerX - 5, centerY + i);
+                        ctx.lineTo(centerX + 5, centerY + i);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 三角函数可视化
+            drawTrigonometry() {
+                const ctx = this.canvases.trig.ctx;
+                ctx.clearRect(0, 0, 400, 300);
+                
+                const frequency = parseFloat(document.getElementById('frequency').value);
+                const amplitude = parseFloat(document.getElementById('amplitude').value);
+                const phase = parseFloat(document.getElementById('phase').value) * Math.PI / 180;
+                const centerY = 150;
+                
+                // 绘制坐标轴
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(400, centerY);
+                ctx.moveTo(20, 0);
+                ctx.lineTo(20, 300);
+                ctx.stroke();
+                
+                // 绘制函数曲线
+                const funcType = this.currentStates.trigFunction;
+                ctx.lineWidth = 3;
+                
+                if (funcType === 'combined') {
+                    // 绘制多个函数
+                    this.drawTrigFunction(ctx, 'sin', frequency, amplitude, phase, centerY, '#ff6b6b');
+                    this.drawTrigFunction(ctx, 'cos', frequency, amplitude * 0.7, phase, centerY, '#4ecdc4');
+                } else {
+                    this.drawTrigFunction(ctx, funcType, frequency, amplitude, phase + this.animationStates.trigTime, centerY, '#4ecdc4');
+                }
+                
+                // 绘制标签
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.fillText('0', 15, centerY + 15);
+                ctx.fillText('π', 100, centerY + 15);
+                ctx.fillText('2π', 180, centerY + 15);
+            }
+
+            drawTrigFunction(ctx, type, frequency, amplitude, phase, centerY, color) {
+                ctx.strokeStyle = color;
+                ctx.beginPath();
+                
+                for (let x = 0; x < 400; x++) {
+                    const t = (x - 20) * 0.02;
+                    let y;
+                    
+                    switch (type) {
+                        case 'sin':
+                            y = centerY - amplitude * Math.sin(frequency * t + phase);
+                            break;
+                        case 'cos':
+                            y = centerY - amplitude * Math.cos(frequency * t + phase);
+                            break;
+                        case 'tan':
+                            y = centerY - amplitude * Math.tan(frequency * t + phase) * 0.1;
+                            y = Math.max(0, Math.min(300, y)); // 限制范围
+                            break;
+                    }
+                    
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+            }
+
+            // 矩阵变换可视化
+            drawMatrixTransformation() {
+                const ctx = this.canvases.matrix.ctx;
+                ctx.clearRect(0, 0, 400, 300);
+                
+                const centerX = 200;
+                const centerY = 150;
+                
+                // 绘制坐标轴
+                this.drawAxes(ctx, centerX, centerY, 150);
+                
+                // 获取变换参数
+                const rotation = parseFloat(document.getElementById('rotation').value) * Math.PI / 180;
+                const scaleX = parseFloat(document.getElementById('scaleX').value);
+                const scaleY = parseFloat(document.getElementById('scaleY').value);
+                const skewX = parseFloat(document.getElementById('skewX').value);
+                
+                // 如果动画运行，使用动画时间
+                const animRotation = this.animationStates.running.matrix ? 
+                    this.animationStates.matrixTime : rotation;
+                
+                // 创建变换矩阵
+                const cos = Math.cos(animRotation);
+                const sin = Math.sin(animRotation);
+                
+                const matrix = [
+                    scaleX * cos + skewX * scaleY * sin,  -scaleY * sin,
+                    scaleX * sin,                          scaleY * cos
+                ];
+                
+                // 绘制原始形状（浅色）
+                this.drawShape(ctx, centerX, centerY, 1, 0, 0, 1, 'rgba(255, 255, 255, 0.3)');
+                
+                // 绘制变换后的形状
+                this.drawShape(ctx, centerX, centerY, matrix[0], matrix[1], matrix[2], matrix[3], '#4ecdc4');
+                
+                // 更新矩阵信息
+                const matrixInfo = `[${matrix[0].toFixed(2)} ${matrix[1].toFixed(2)}]\n[${matrix[2].toFixed(2)} ${matrix[3].toFixed(2)}]`;
+                document.getElementById('matrixFormula').innerHTML = 
+                    `变换矩阵:<br>[${matrix[0].toFixed(2)} ${matrix[1].toFixed(2)}]<br>[${matrix[2].toFixed(2)} ${matrix[3].toFixed(2)}]`;
+            }
+
+            drawShape(ctx, centerX, centerY, a, b, c, d, color) {
+                const points = [
+                    [-50, -50], [50, -50], [50, 50], [-50, 50], [-50, -50]
+                ];
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                points.forEach((point, index) => {
+                    const x = point[0] * a + point[1] * b + centerX;
+                    const y = point[0] * c + point[1] * d + centerY;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+            }
+
+            // 贝塞尔曲线可视化
+            drawBezierCurve() {
+                const ctx = this.canvases.bezier.ctx;
+                ctx.clearRect(0, 0, 400, 300);
+                
+                // 获取控制点
+                const cp1x = parseFloat(document.getElementById('cp1x').value);
+                const cp1y = parseFloat(document.getElementById('cp1y').value);
+                const cp2x = parseFloat(document.getElementById('cp2x').value);
+                const cp2y = parseFloat(document.getElementById('cp2y').value);
+                
+                const startPoint = { x: 50, y: 250 };
+                const endPoint = { x: 350, y: 50 };
+                const controlPoint1 = { x: cp1x, y: cp1y };
+                const controlPoint2 = { x: cp2x, y: cp2y };
+                
+                // 绘制控制点和连接线
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(startPoint.x, startPoint.y);
+                ctx.lineTo(controlPoint1.x, controlPoint1.y);
+                ctx.moveTo(endPoint.x, endPoint.y);
+                ctx.lineTo(controlPoint2.x, controlPoint2.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 绘制控制点
+                this.drawControlPoint(ctx, startPoint.x, startPoint.y, '#ff6b6b', 'P0');
+                this.drawControlPoint(ctx, controlPoint1.x, controlPoint1.y, '#4ecdc4', 'P1');
+                this.drawControlPoint(ctx, controlPoint2.x, controlPoint2.y, '#4ecdc4', 'P2');
+                this.drawControlPoint(ctx, endPoint.x, endPoint.y, '#ff6b6b', 'P3');
+                
+                // 绘制贝塞尔曲线
+                ctx.strokeStyle = '#f9ca24';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startPoint.x, startPoint.y);
+                
+                if (this.currentStates.bezierType === 'cubic') {
+                    ctx.bezierCurveTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, endPoint.x, endPoint.y);
+                } else {
+                    ctx.quadraticCurveTo(controlPoint1.x, controlPoint1.y, endPoint.x, endPoint.y);
+                }
+                
+                ctx.stroke();
+                
+                // 如果动画运行，显示构造过程
+                if (this.animationStates.running.bezier) {
+                    this.drawBezierConstruction(ctx, startPoint, controlPoint1, controlPoint2, endPoint, this.animationStates.bezierTime);
+                }
+            }
+
+            drawControlPoint(ctx, x, y, color, label) {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.fillText(label, x + 10, y - 10);
+            }
+
+            drawBezierConstruction(ctx, p0, p1, p2, p3, t) {
+                // 线性插值函数
+                const lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+                
+                // 第一级插值
+                const q0 = lerp(p0, p1, t);
+                const q1 = lerp(p1, p2, t);
+                const q2 = lerp(p2, p3, t);
+                
+                // 第二级插值
+                const r0 = lerp(q0, q1, t);
+                const r1 = lerp(q1, q2, t);
+                
+                // 最终点
+                const s = lerp(r0, r1, t);
+                
+                // 绘制构造线
+                ctx.strokeStyle = 'rgba(255, 107, 107, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(q0.x, q0.y);
+                ctx.lineTo(q1.x, q1.y);
+                ctx.lineTo(q2.x, q2.y);
+                ctx.stroke();
+                
+                ctx.strokeStyle = 'rgba(78, 205, 196, 0.7)';
+                ctx.beginPath();
+                ctx.moveTo(r0.x, r0.y);
+                ctx.lineTo(r1.x, r1.y);
+                ctx.stroke();
+                
+                // 绘制当前点
+                ctx.fillStyle = '#f9ca24';
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 极坐标图形
+            drawPolarGraphs() {
+                const ctx = this.canvases.polar.ctx;
+                ctx.clearRect(0, 0, 400, 300);
+                
+                const centerX = 200;
+                const centerY = 150;
+                const a = parseFloat(document.getElementById('polarA').value);
+                const b = parseFloat(document.getElementById('polarB').value);
+                const scale = parseFloat(document.getElementById('polarScale').value) * 50;
+                
+                // 绘制极坐标网格
+                this.drawPolarGrid(ctx, centerX, centerY);
+                
+                const type = this.currentStates.polarType;
+                
+                ctx.strokeStyle = '#4ecdc4';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                let first = true;
+                for (let theta = 0; theta <= Math.PI * 4; theta += 0.02) {
+                    let r;
+                    
+                    switch (type) {
+                        case 'rose':
+                            r = a * Math.sin(b * theta);
+                            break;
+                        case 'spiral':
+                            r = a * theta / 10;
+                            break;
+                        case 'cardioid':
+                            r = a * (1 + Math.cos(theta));
+                            break;
+                        case 'lemniscate':
+                            const cos2theta = Math.cos(2 * theta);
+                            r = cos2theta >= 0 ? a * Math.sqrt(cos2theta) : 0;
+                            break;
+                    }
+                    
+                    const x = centerX + r * scale * Math.cos(theta);
+                    const y = centerY + r * scale * Math.sin(theta);
+                    
+                    if (first || (type === 'lemniscate' && r === 0)) {
+                        ctx.moveTo(x, y);
+                        first = false;
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                
+                // 更新公式
+                const formulas = {
+                    rose: `r = ${a} × sin(${b} × θ)`,
+                    spiral: `r = ${a} × θ`,
+                    cardioid: `r = ${a} × (1 + cos(θ))`,
+                    lemniscate: `r = ${a} × √(cos(2θ))`
+                };
+                
+                document.getElementById('polarFormula').textContent = formulas[type];
+            }
+
+            drawPolarGrid(ctx, centerX, centerY) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1;
+                
+                // 绘制同心圆
+                for (let r = 20; r <= 120; r += 20) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // 绘制射线
+                for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 6) {
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(
+                        centerX + 120 * Math.cos(angle),
+                        centerY + 120 * Math.sin(angle)
+                    );
+                    ctx.stroke();
+                }
+            }
+
+            // 噪声函数可视化
+            drawNoise() {
+                const ctx = this.canvases.noise.ctx;
+                ctx.clearRect(0, 0, 400, 300);
+                
+                const frequency = parseFloat(document.getElementById('noiseFreq').value);
+                const amplitude = parseFloat(document.getElementById('noiseAmp').value);
+                const octaves = parseInt(document.getElementById('noiseOctaves').value);
+                
+                const imageData = ctx.createImageData(400, 300);
+                const data = imageData.data;
+                
+                for (let x = 0; x < 400; x++) {
+                    for (let y = 0; y < 300; y++) {
+                        let noiseValue = 0;
+                        let maxValue = 0;
+                        
+                        // 生成分形噪声
+                        for (let i = 0; i < octaves; i++) {
+                            const freq = frequency * Math.pow(2, i);
+                            const amp = amplitude / Math.pow(2, i);
+                            
+                            noiseValue += this.noise(
+                                x * freq, 
+                                y * freq, 
+                                this.animationStates.noiseTime
+                            ) * amp;
+                            maxValue += amp;
+                        }
+                        
+                        // 标准化到0-255
+                        const normalizedValue = ((noiseValue / maxValue) + 1) * 127.5;
+                        const clampedValue = Math.max(0, Math.min(255, normalizedValue));
+                        
+                        const index = (y * 400 + x) * 4;
+                        
+                        // 根据噪声类型设置颜色
+                        if (this.currentStates.noiseType === 'perlin') {
+                            data[index] = clampedValue * 0.7;     // R
+                            data[index + 1] = clampedValue;       // G
+                            data[index + 2] = clampedValue * 0.8; // B
+                        } else {
+                            data[index] = clampedValue;           // R
+                            data[index + 1] = clampedValue * 0.8; // G
+                            data[index + 2] = clampedValue * 0.6; // B
+                        }
+                        data[index + 3] = 255; // A
+                    }
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            // 简单的噪声函数实现
+            noise(x, y, z = 0) {
+                // 伪随机噪声函数
+                const n = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719) * 43758.5453;
+                return (n - Math.floor(n)) * 2 - 1;
+            }
+        }
+
+        // 全局函数 - 向量操作
+        function showVectorOperation(operation) {
+            mathViz.currentStates.vectorOperation = operation;
+            document.getElementById('vectorOperation').textContent = {
+                add: '向量相加',
+                subtract: '向量相减',
+                dot: '点积运算',
+                cross: '叉积运算'
+            }[operation];
+            mathViz.drawVectors();
+        }
+
+        // 三角函数选择
+        function selectTrigFunction(func) {
+            mathViz.currentStates.trigFunction = func;
+            document.querySelectorAll('.demo-card:nth-child(2) .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // 矩阵变换控制
+        function resetMatrix() {
+            document.getElementById('rotation').value = 0;
+            document.getElementById('scaleX').value = 1;
+            document.getElementById('scaleY').value = 1;
+            document.getElementById('skewX').value = 0;
+            
+            // 更新显示
+            document.getElementById('rotationValue').textContent = '0°';
+            document.getElementById('scaleXValue').textContent = '1.0';
+            document.getElementById('scaleYValue').textContent = '1.0';
+            document.getElementById('skewXValue').textContent = '0.0';
+            
+            mathViz.drawMatrixTransformation();
+        }
+
+        function animateMatrix() {
+            mathViz.animationStates.running.matrix = !mathViz.animationStates.running.matrix;
+            event.target.textContent = mathViz.animationStates.running.matrix ? '停止动画' : '动画演示';
+        }
+
+        function showMatrixInfo() {
+            alert('矩阵变换可以组合旋转、缩放、倾斜等操作。每个变换都可以用2x2矩阵表示，多个变换可以通过矩阵乘法组合。');
+        }
+
+        // 贝塞尔曲线控制
+        function setBezierType(type) {
+            mathViz.currentStates.bezierType = type;
+            document.querySelectorAll('.demo-card:nth-child(4) .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            mathViz.drawBezierCurve();
+        }
+
+        function animateBezier() {
+            mathViz.animationStates.running.bezier = !mathViz.animationStates.running.bezier;
+            event.target.textContent = mathViz.animationStates.running.bezier ? '停止动画' : '动画演示';
+        }
+
+        function showBezierConstruction() {
+            alert('贝塞尔曲线通过递归线性插值构造。观察动画可以看到控制点如何影响曲线形状。');
+        }
+
+        // 极坐标图形控制
+        function setPolarType(type) {
+            mathViz.currentStates.polarType = type;
+            document.querySelectorAll('.demo-card:nth-child(5) .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            mathViz.drawPolarGraphs();
+        }
+
+        // 噪声函数控制
+        function setNoiseType(type) {
+            mathViz.currentStates.noiseType = type;
+            document.querySelectorAll('.demo-card:nth-child(6) .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            mathViz.drawNoise();
+        }
+
+        function animateNoise() {
+            mathViz.animationStates.running.noise = !mathViz.animationStates.running.noise;
+            event.target.textContent = mathViz.animationStates.running.noise ? '停止动画' : '动画';
+        }
+
+        // 初始化
+        let mathViz;
+        document.addEventListener('DOMContentLoaded', () => {
+            mathViz = new MathVisualization();
+            
+            setTimeout(() => {
+                console.log(`
+📐 图形数学可视化使用指南：
+
+🔧 功能模块：
+├── 向量操作: 可视化向量加法、减法、点积、叉积
+├── 三角函数: 观察正弦、余弦、正切波形及参数影响
+├── 矩阵变换: 旋转、缩放、倾斜变换的实时预览
+├── 贝塞尔曲线: 交互式控制点调节和构造过程演示
+├── 极坐标图形: 玫瑰线、螺旋线等数学图形
+└── 噪声函数: Perlin噪声的可视化和应用
+
+🎮 操作提示：
+- 拖动滑块调节参数，实时观察变化
+- 点击按钮切换不同模式和功能
+- 观察数学公式与图形的对应关系
+- 尝试理解各种参数对图形的影响
+
+探索数学与图形的美妙关系! 🌟
+                `);
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

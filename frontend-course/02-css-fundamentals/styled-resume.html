@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>张三的个人简历</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 页面头部 -->
+    <header class="header">
+        <div class="container">
+            <h1 class="name">张三</h1>
+            <p class="title">前端开发工程师</p>
+            <nav class="navigation">
+                <ul>
+                    <li><a href="#about">关于我</a></li>
+                    <li><a href="#education">教育背景</a></li>
+                    <li><a href="#experience">工作经验</a></li>
+                    <li><a href="#skills">技能</a></li>
+                    <li><a href="#contact">联系方式</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 关于我 -->
+            <section id="about" class="section">
+                <h2 class="section-title">关于我</h2>
+                <div class="section-content">
+                    <p>我是一名<strong>充满热情</strong>的前端开发者，有<em>3年</em>的开发经验。</p>
+                    <p>擅长使用现代前端技术栈构建响应式网站和单页应用。</p>
+                </div>
+            </section>
+
+            <!-- 教育背景 -->
+            <section id="education" class="section">
+                <h2 class="section-title">教育背景</h2>
+                <div class="section-content">
+                    <article class="education-item">
+                        <h3>某某大学</h3>
+                        <p class="period">计算机科学与技术专业 | 2018-2022</p>
+                        <ul class="achievements">
+                            <li>GPA: 3.8/4.0</li>
+                            <li>获得优秀毕业生称号</li>
+                            <li>参与多个校园项目开发</li>
+                        </ul>
+                    </article>
+                </div>
+            </section>
+
+            <!-- 工作经验 -->
+            <section id="experience" class="section">
+                <h2 class="section-title">工作经验</h2>
+                <div class="section-content">
+                    <article class="experience-item">
+                        <h3>ABC科技公司 - 前端开发工程师</h3>
+                        <p class="period"><time>2022年7月 - 至今</time></p>
+                        <ul class="responsibilities">
+                            <li>负责公司主要产品的前端开发和维护</li>
+                            <li>参与技术选型和架构设计</li>
+                            <li>优化页面性能，提升用户体验</li>
+                        </ul>
+                    </article>
+                    
+                    <article class="experience-item">
+                        <h3>XYZ互联网公司 - 前端开发实习生</h3>
+                        <p class="period"><time>2021年7月 - 2021年12月</time></p>
+                        <ul class="responsibilities">
+                            <li>协助开发公司官网</li>
+                            <li>修复bug并优化代码</li>
+                            <li>学习并实践敏捷开发流程</li>
+                        </ul>
+                    </article>
+                </div>
+            </section>
+
+            <!-- 技能列表 -->
+            <section id="skills" class="section">
+                <h2 class="section-title">专业技能</h2>
+                <div class="section-content skills-grid">
+                    <div class="skill-category">
+                        <h3>编程语言</h3>
+                        <ul class="skill-list">
+                            <li>HTML5</li>
+                            <li>CSS3</li>
+                            <li>JavaScript (ES6+)</li>
+                            <li>TypeScript</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="skill-category">
+                        <h3>框架和工具</h3>
+                        <ul class="skill-list">
+                            <li>React.js</li>
+                            <li>Vue.js</li>
+                            <li>Node.js</li>
+                            <li>Webpack</li>
+                            <li>Git</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 联系方式 -->
+            <section id="contact" class="section">
+                <h2 class="section-title">联系我</h2>
+                <div class="section-content">
+                    <form class="contact-form" action="#" method="post">
+                        <div class="form-group">
+                            <label for="name">您的姓名：</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">您的邮箱：</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">主题：</label>
+                            <select id="subject" name="subject">
+                                <option value="job">工作机会</option>
+                                <option value="project">项目合作</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">留言：</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">发送</button>
+                            <button type="reset" class="btn btn-secondary">重置</button>
+                        </div>
+                    </form>
+                    
+                    <address class="contact-info">
+                        <p><strong>邮箱：</strong>zhangsan@example.com</p>
+                        <p><strong>电话：</strong>123-4567-8900</p>
+                        <p><strong>地址：</strong>北京市朝阳区某某街道</p>
+                    </address>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 页面底部 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 张三. 保留所有权利。</p>
+            <p>最后更新：<time datetime="2024-01">2024年1月</time></p>
+        </div>
+    </footer>
+</body>
+</html> 
